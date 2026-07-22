@@ -15,9 +15,11 @@ Pine portunda karsilasilan "lot hep tavanda" sorunu) canli hesaba SIZMAZ.
 """
 import asyncio
 import logging
+import traceback
 from datetime import datetime, timezone
 
 from fastapi import FastAPI, Header, HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 import config
@@ -59,6 +61,8 @@ async def health():
 
 @app.post("/webhook")
 async def webhook(alert: Alert, x_webhook_secret: str = Header(default="")):
+    log.info(">>> GELEN ALERT: %s", alert.model_dump())
+
     secret = alert.secret or x_webhook_secret
     if config.WEBHOOK_SECRET and secret != config.WEBHOOK_SECRET:
         raise HTTPException(status_code=401, detail="Gecersiz webhook secret.")
@@ -78,51 +82,66 @@ async def webhook(alert: Alert, x_webhook_secret: str = Header(default="")):
         log.warning("Sinyal reddedildi: periyot-ici DD tavani asilmis.")
         return {"status": "rejected", "reason": "halted"}
 
-    spread_points = await mt.get_spread_points(config.SYMBOL)
-    if spread_points > config.MAX_SPREAD_POINTS:
-        log.warning("Sinyal reddedildi: spread=%.1f > MaxSpreadPoints=%.1f", spread_points, config.MAX_SPREAD_POINTS)
-        return {"status": "rejected", "reason": "spread_too_wide", "spread_points": spread_points}
+    # NOT: Buradan sonrasi MetaApi'ye gercek agirlikli cagrilar yapiyor -
+    # herhangi biri patlarsa TAM TRACEBACK'i loglayip 500'u ANLAMLI bir JSON
+    # olarak donuyoruz (onceki "Internal Server Error" bos govdesi yerine).
+    try:
+        spread_points = await mt.get_spread_points(config.SYMBOL)
+        if spread_points > config.MAX_SPREAD_POINTS:
+            log.warning("Sinyal reddedildi: spread=%.1f > MaxSpreadPoints=%.1f",
+                        spread_points, config.MAX_SPREAD_POINTS)
+            return {"status": "rejected", "reason": "spread_too_wide", "spread_points": spread_points}
 
-    # --- LOT BUYUKLUGU: sunucu tarafinda YENIDEN hesaplanir (Pine'in volume'u YOK SAYILIR) ---
-    price = await mt.get_price(config.SYMBOL)
-    proxy_entry = price["ask"] if alert.action == "buy" else price["bid"]
-    sl_distance = abs(proxy_entry - alert.sl)
-    if sl_distance <= 0:
-        raise HTTPException(status_code=400, detail="Gecersiz SL mesafesi (sl==entry?).")
+        # --- LOT BUYUKLUGU: sunucu tarafinda YENIDEN hesaplanir (Pine'in volume'u YOK SAYILIR) ---
+        price = await mt.get_price(config.SYMBOL)
+        proxy_entry = price["ask"] if alert.action == "buy" else price["bid"]
+        sl_distance = abs(proxy_entry - alert.sl)
+        if sl_distance <= 0:
+            raise HTTPException(status_code=400, detail="Gecersiz SL mesafesi (sl==entry?).")
 
-    account_info = await mt.get_account_info()
-    equity = account_info.get("equity", account_info.get("balance"))
-    lot = risk.calc_lot(equity, sl_distance)
-    if lot <= 0:
-        log.warning("Hesaplanan lot 0 - islem acilmadi (equity=%.2f sl_dist=%.4f)", equity, sl_distance)
-        return {"status": "rejected", "reason": "zero_lot"}
+        account_info = await mt.get_account_info()
+        equity = account_info.get("equity", account_info.get("balance"))
+        lot = risk.calc_lot(equity, sl_distance)
+        if lot <= 0:
+            log.warning("Hesaplanan lot 0 - islem acilmadi (equity=%.2f sl_dist=%.4f)", equity, sl_distance)
+            return {"status": "rejected", "reason": "zero_lot"}
 
-    result = await mt.create_market_order(config.SYMBOL, alert.action, lot, alert.sl, alert.tp,
-                                           comment="webhook")
+        log.info("Emir gonderiliyor: %s %s lot=%.2f sl=%.2f tp=%.2f", alert.action, config.SYMBOL,
+                  lot, alert.sl, alert.tp)
+        result = await mt.create_market_order(config.SYMBOL, alert.action, lot, alert.sl, alert.tp,
+                                               comment="webhook")
+        log.info("MetaApi sonucu: %s", result)
 
-    if config.DRY_RUN:
-        return {"status": "dry_run", "would_open": {"direction": alert.action, "lot": lot,
-                                                      "sl": alert.sl, "tp": alert.tp}}
+        if config.DRY_RUN:
+            return {"status": "dry_run", "would_open": {"direction": alert.action, "lot": lot,
+                                                          "sl": alert.sl, "tp": alert.tp}}
 
-    # NOT: MetatraderTradeResponse'ta dolum fiyati YOK (sadece numericCode/
-    # stringCode/message/orderId/positionId) - gercek acilis fiyatini almak
-    # icin pozisyonu ayrica cekiyoruz.
-    position_id = result.get("positionId") or result.get("orderId")
-    filled_price = proxy_entry
-    if position_id:
-        try:
-            positions = await mt.get_positions()
-            match = next((p for p in positions if str(p.get("id")) == str(position_id)), None)
-            if match:
-                filled_price = match.get("openPrice", proxy_entry)
-        except Exception as ex:
-            log.warning("Acilis fiyati dogrulanamadi, proxy fiyat kullanildi: %s", ex)
+        # NOT: MetatraderTradeResponse'ta dolum fiyati YOK (sadece numericCode/
+        # stringCode/message/orderId/positionId) - gercek acilis fiyatini almak
+        # icin pozisyonu ayrica cekiyoruz.
+        position_id = result.get("positionId") or result.get("orderId")
+        filled_price = proxy_entry
+        if position_id:
+            try:
+                positions = await mt.get_positions()
+                match = next((p for p in positions if str(p.get("id")) == str(position_id)), None)
+                if match:
+                    filled_price = match.get("openPrice", proxy_entry)
+            except Exception as ex:
+                log.warning("Acilis fiyati dogrulanamadi, proxy fiyat kullanildi: %s", ex)
 
-        state.track_position(position_id, alert.action, filled_price, alert.sl, alert.tp,
-                              datetime.now(timezone.utc).isoformat())
-        log.info("Pozisyon acildi ve takibe alindi: id=%s %s lot=%.2f fiyat=%.2f",
-                  position_id, alert.action, lot, filled_price)
-    else:
-        log.warning("MetaApi sonucunda position_id bulunamadi - SDK dokumantasyonunu kontrol et: %s", result)
+            state.track_position(position_id, alert.action, filled_price, alert.sl, alert.tp,
+                                  datetime.now(timezone.utc).isoformat())
+            log.info("Pozisyon acildi ve takibe alindi: id=%s %s lot=%.2f fiyat=%.2f",
+                      position_id, alert.action, lot, filled_price)
+        else:
+            log.warning("MetaApi sonucunda position_id bulunamadi - SDK dokumantasyonunu kontrol et: %s", result)
 
-    return {"status": "opened", "lot": lot, "result": result}
+        return {"status": "opened", "lot": lot, "result": result}
+
+    except HTTPException:
+        raise  # 400/401 gibi kasitli HTTP hatalari oldugu gibi gecsin
+    except Exception as ex:
+        tb = traceback.format_exc()
+        log.error(">>> WEBHOOK HATASI: %s\n%s", ex, tb)
+        return JSONResponse(status_code=500, content={"error": str(ex), "type": type(ex).__name__})
