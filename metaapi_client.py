@@ -109,7 +109,11 @@ async def create_market_order(symbol: str, direction: str, volume: float,
         return {"dry_run": True}
 
     conn = get_connection()
-    options = {"comment": comment, "magic": str(config.MAGIC)}
+    # [DUZELTME] SDK'nin tip ipucu Optional[str] diyor ama MetaApi'nin
+    # GERCEK API validasyonu "magic"i sayi (number) olarak bekliyor -
+    # canli test ettim: str() ile "Incorrect type. Expected number." hatasi
+    # aldik. int olarak birakiliyor.
+    options = {"comment": comment, "magic": config.MAGIC}
     if direction == "buy":
         return await conn.create_market_buy_order(symbol, volume, stop_loss=stop_loss,
                                                     take_profit=take_profit, options=options)
