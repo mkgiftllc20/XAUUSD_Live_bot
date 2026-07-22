@@ -143,5 +143,7 @@ async def webhook(alert: Alert, x_webhook_secret: str = Header(default="")):
         raise  # 400/401 gibi kasitli HTTP hatalari oldugu gibi gecsin
     except Exception as ex:
         tb = traceback.format_exc()
-        log.error(">>> WEBHOOK HATASI: %s\n%s", ex, tb)
-        return JSONResponse(status_code=500, content={"error": str(ex), "type": type(ex).__name__})
+        details = getattr(ex, "details", None)  # MetaApi ValidationException._details
+        log.error(">>> WEBHOOK HATASI: %s | details=%s\n%s", ex, details, tb)
+        return JSONResponse(status_code=500, content={"error": str(ex), "type": type(ex).__name__,
+                                                        "details": details})
