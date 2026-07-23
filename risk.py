@@ -14,7 +14,10 @@ import math
 
 import config
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 def calc_lot(equity: float, sl_distance_price: float, risk_pct: float = None) -> float:
     """Risk-bazli lot hesabi. XM GOLD: 1.0 lot = $100 / $1 fiyat hareketi (dogrulandi)."""
     risk_pct = config.RISK_PCT if risk_pct is None else risk_pct
@@ -26,7 +29,10 @@ def calc_lot(equity: float, sl_distance_price: float, risk_pct: float = None) ->
     lot = max(0.0, min(config.MAX_LOTS, lot))
     return round(lot, 2)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 class DrawdownGuard:
     """Iki katmanli DD korumasi: periyodik (resetlenir) + kalici hard-floor.
     XAUUSDBot'taki (MQL5/Python) ayni mantigin bagimsiz-proje kopyasi."""

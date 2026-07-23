@@ -20,7 +20,10 @@ from risk import DrawdownGuard
 
 _lock = threading.Lock()
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 class LiveState:
     def __init__(self):
         self.dd_guard = DrawdownGuard()
@@ -58,5 +61,8 @@ class LiveState:
         self.positions.pop(str(position_id), None)
         self.save()
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 state = LiveState()

@@ -23,13 +23,19 @@ from state import state
 
 log = logging.getLogger("position_manager")
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 def _today_week_keys(dt: datetime):
     today_key = dt.year * 10000 + dt.month * 100 + dt.day
     week_key = dt.isocalendar()[1] + dt.year * 100
     return today_key, week_key
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 def _wilder_atr(candles: list, period: int) -> float:
     """candles: EN ESKI -> EN YENI sirali varsayilir (dogrulanmadi - DRY_RUN'da
     ilk calistirmada candles[-1]['time']'in gercekten EN YENI bar oldugunu
@@ -46,7 +52,10 @@ def _wilder_atr(candles: list, period: int) -> float:
         atr = (atr * (period - 1) + tr) / period
     return atr
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 def _ema_series(closes: list, period: int) -> list:
     if len(closes) < period:
         return [None] * len(closes)
@@ -60,7 +69,10 @@ def _ema_series(closes: list, period: int) -> list:
         out[i] = prev
     return out
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 async def _check_ema_exit(direction: str) -> bool:
     """TP1 sonrasi EMA8/21 ters-cross erken cikis kontrolu (son 2 kapanmis M5 mum)."""
     try:
@@ -82,7 +94,10 @@ async def _check_ema_exit(direction: str) -> bool:
         return cross_bear
     return cross_bull
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 async def _manage_one_position(pos: dict, tracked: dict):
     position_id = str(pos["id"])   # SDK 'id'yi int dondurur, trading cagrilari str bekler
     direction = "buy" if pos["type"] == "POSITION_TYPE_BUY" else "sell"
@@ -154,7 +169,10 @@ async def _manage_one_position(pos: dict, tracked: dict):
         await mt.modify_position_sl(position_id, new_sl)
         log.info("Trailing: pos=%s yeni_sl=%.2f (trail=%.2f cap=%.2f)", position_id, new_sl, trail, cap_sl)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 async def run_forever():
     """Ana arka plan dongusu - main.py'nin startup event'inde baslatilir."""
     log.info("Pozisyon yonetim dongusu basladi (poll=%ss).", config.POLL_SEC)
@@ -165,7 +183,10 @@ async def run_forever():
             log.exception("Dongu icinde hata (devam ediliyor): %s", ex)
         await asyncio.sleep(config.POLL_SEC)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 async def _tick():
     info = await mt.get_account_info()
     equity = info.get("equity", info.get("balance"))

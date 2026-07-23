@@ -33,7 +33,10 @@ log = logging.getLogger("main")
 
 app = FastAPI(title="XAUUSD LiveBot Webhook")
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 class Alert(BaseModel):
     action: str
     symbol: str
@@ -42,7 +45,10 @@ class Alert(BaseModel):
     tp: float
     secret: str = ""
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 @app.on_event("startup")
 async def on_startup():
     log.info("Baslatiliyor... DRY_RUN=%s", config.DRY_RUN)
@@ -50,7 +56,10 @@ async def on_startup():
     asyncio.create_task(position_manager.run_forever())
     log.info("Webhook sunucusu ve pozisyon yonetim dongusu hazir.")
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 @app.get("/health")
 async def health():
     return {"status": "ok", "dry_run": config.DRY_RUN,
@@ -58,7 +67,10 @@ async def health():
             "halted": state.dd_guard.halted,
             "tracked_positions": list(state.positions.keys())}
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 @app.post("/webhook")
 async def webhook(alert: Alert, x_webhook_secret: str = Header(default="")):
     log.info(">>> GELEN ALERT: %s", alert.model_dump())

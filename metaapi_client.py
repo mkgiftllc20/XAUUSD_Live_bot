@@ -29,7 +29,10 @@ _api = None
 _account = None
 _connection = None
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 async def connect():
     """MetaApi'ye baglanir, hesabi deploy/senkronize eder, RPC baglantisi doner."""
     global _api, _account, _connection
@@ -58,28 +61,43 @@ async def connect():
     log.info("MetaApi RPC baglantisi senkronize oldu.")
     return _connection
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 def get_connection():
     if _connection is None:
         raise RuntimeError("MetaApi baglantisi henuz kurulmadi - once connect() cagir.")
     return _connection
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 async def get_account_info() -> dict:
     conn = get_connection()
     return await conn.get_account_information()
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 async def get_positions() -> list:
     conn = get_connection()
     return await conn.get_positions()
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 async def get_price(symbol: str) -> dict:
     conn = get_connection()
     return await conn.get_symbol_price(symbol)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 async def get_spread_points(symbol: str) -> float:
     """Guncel spread'i (puan) dondurur. price['bid']/['ask'] + symbol point buyuklugu gerekir."""
     price = await get_price(symbol)
@@ -91,7 +109,10 @@ async def get_spread_points(symbol: str) -> float:
     point = 0.01
     return (ask - bid) / point
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 async def get_recent_candles(symbol: str, timeframe: str, limit: int = 60) -> list:
     """Son N mumu dondurur (en eski -> en yeni sirali bekleniyor)."""
     if _account is None:
@@ -99,7 +120,10 @@ async def get_recent_candles(symbol: str, timeframe: str, limit: int = 60) -> li
     candles = await _account.get_historical_candles(symbol, timeframe, None, limit)
     return candles
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 async def create_market_order(symbol: str, direction: str, volume: float,
                                stop_loss: float, take_profit: float, comment: str = "") -> dict:
     """direction: 'buy' ya da 'sell'. DRY_RUN=true ise emir GONDERILMEZ, sadece loglanir."""
@@ -122,7 +146,10 @@ async def create_market_order(symbol: str, direction: str, volume: float,
                                                      take_profit=take_profit, options=options)
     raise ValueError(f"Gecersiz direction: {direction}")
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 async def modify_position_sl(position_id: str, new_sl: float, take_profit=None) -> dict:
     if config.DRY_RUN:
         log.info("[DRY_RUN] SL guncellenmedi: pos=%s yeni_sl=%.2f", position_id, new_sl)
@@ -130,7 +157,10 @@ async def modify_position_sl(position_id: str, new_sl: float, take_profit=None) 
     conn = get_connection()
     return await conn.modify_position(position_id, stop_loss=new_sl, take_profit=take_profit)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 async def close_position_partial(position_id: str, volume: float) -> dict:
     if config.DRY_RUN:
         log.info("[DRY_RUN] Kismi kapama yapilmadi: pos=%s vol=%.2f", position_id, volume)
@@ -138,7 +168,10 @@ async def close_position_partial(position_id: str, volume: float) -> dict:
     conn = get_connection()
     return await conn.close_position_partially(position_id, volume)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 async def close_position(position_id: str) -> dict:
     if config.DRY_RUN:
         log.info("[DRY_RUN] Pozisyon kapatilmadi: pos=%s", position_id)

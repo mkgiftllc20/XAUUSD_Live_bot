@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # XAUUSD LiveBot — TradingView → Railway → MetaApi → XM Demo
+=======
+# XAUUSD LiveBot — TradingView -> Railway -> MetaApi -> XM Demo
+>>>>>>> 4be91a9 (ilk sürüm)
 
 Bu proje **XAUUSDBot** (backtest/MQL5) projesinden **bagimsizdir**. Amac: TradingView
 Pine Script alert'lerini bir webhook uzerinden alip, MetaApi araciligiyla XM'deki
@@ -6,14 +10,23 @@ Pine Script alert'lerini bir webhook uzerinden alip, MetaApi araciligiyla XM'dek
 
 ## Mimari
 
+<<<<<<< HEAD
 ```
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 TradingView (Pine alert, sadece GIRIS sinyali)
         |  webhook POST {"action","symbol","volume","sl","tp"}
         v
 Railway (bu proje, FastAPI)
+<<<<<<< HEAD
   ├─ /webhook  -> guvenlik kontrolleri (DD, spread, secret) + lot hesabi (risk.py)
   │              + MetaApi'ye market emri (metaapi_client.py)
   └─ arka plan dongusu (position_manager.py, her POLL_SEC saniyede bir):
+=======
+  - /webhook  -> guvenlik kontrolleri (DD, spread, secret) + lot hesabi (risk.py)
+                 + MetaApi'ye market emri (metaapi_client.py)
+  - arka plan dongusu (position_manager.py, her POLL_SEC saniyede bir):
+>>>>>>> 4be91a9 (ilk sürüm)
         - TP1 (%60) kismi kapama
         - Runner (%40) icin ATR-trailing + GERCEK hard-cap (RUNNER_CAP_R)
         - Zaman-stopu (MAX_HOLD_MINUTES)
@@ -21,12 +34,19 @@ Railway (bu proje, FastAPI)
         - Iki katmanli DD korumasi (periyodik + kalici hard-floor)
         v
 MetaApi -> XM MT5 DEMO hesabi (gercek emirler burada gerceklesir)
+<<<<<<< HEAD
 ```
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 
 **Onemli tasarim karari:** Pine, SADECE giris sinyalini (ilk SL/TP1 seviyeleriyle
 birlikte) webhook'a gonderir. TUM pozisyon yonetimi (TP1 kismi kapama, trailing,
 runner hard-cap, zaman-stopu, EMA-exit) **bu Python servisinde**, MetaApi
+<<<<<<< HEAD
 uzerinden CANLI olarak yapilir - Pine'in kendi ic `strategy.exit()` guncellemeleri
+=======
+uzerinden CANLI olarak yapilir - Pine'in kendi ic strategy.exit() guncellemeleri
+>>>>>>> 4be91a9 (ilk sürüm)
 gercek hesaba YANSIMAZ, sadece TradingView'in kendi simulasyonunda kalir.
 
 ## Kurulum
@@ -34,6 +54,7 @@ gercek hesaba YANSIMAZ, sadece TradingView'in kendi simulasyonunda kalir.
 ### 1) MetaApi
 - MetaApi hesabina (https://metaapi.cloud) XM demo hesabini ekle, bir
   **account ID** ve **API token** al.
+<<<<<<< HEAD
 - **KRITIK:** `METAAPI_ACCOUNT_ID`'nin gercekten DEMO hesaba isaret ettigini
   MetaApi panelinden bizzat dogrula - bu kod bunu otomatik kontrol EDEMEZ
   (MetaApi SDK'sinda demo/canli ayrimi hesap meta-verisine gore degisir,
@@ -89,3 +110,35 @@ Pine stratejinde (webhook JSON'u zaten uretiyor) alert olustururken:
 - Spread `MAX_SPREAD_POINTS=65` olarak ayarlandi (kullanici talebi) - GOLD
   icin "point" birimi kullanildi (1 point = $0.01), "pip" degil; XM'in canli
   spread'i bu oturumda ~53-57 puan olculdu, 65 makul bir tavan.
+=======
+- **KRITIK:** METAAPI_ACCOUNT_ID'nin gercekten DEMO hesaba isaret ettigini
+  MetaApi panelinden bizzat dogrula.
+
+### 2) Ortam degiskenleri
+.env.example'i kopyala, Railway > Variables sekmesine gir. **DRY_RUN=true ile BASLA.**
+
+### 3) Railway deploy
+Bu klasoru GitHub repo'na push et, Railway'de "New Project -> Deploy from GitHub".
+Railway repo'yu algilayip Procfile'daki web process'ini calistiracak.
+
+### 4) TradingView alert
+- Webhook URL: https://<railway-app>.up.railway.app/webhook
+- Alert kosulu: "Any alert() function call" - mesaj kutusuna dokunma.
+
+### 5) Test sirasi
+1. DRY_RUN=true ile deploy et.
+2. Railway loglarinda [DRY_RUN] satirlarini izle.
+3. /health endpoint'ini kontrol et.
+4. Emin olunca DRY_RUN=false yap.
+
+## Durustluk notlari
+
+- Bu kod GERCEK bir MetaApi hesabina karsi onceden test edilmemisti (sonradan
+  canli testle dogrulandi, magic alaninin int olmasi gerektigi gibi gercek
+  bir uyumsuzluk bulundu ve duzeltildi).
+- Lot buyuklugu sunucu tarafinda YENIDEN hesaplanir (Pine'in gonderdigi
+  volume alani KULLANILMAZ).
+- Railway'in varsayilan dosya sistemi ephemeral'dir - live_bot_state.json
+  her redeploy'da sifirlanabilir.
+- Spread MAX_SPREAD_POINTS=65 (kullanici talebi), point birimi.
+>>>>>>> 4be91a9 (ilk sürüm)

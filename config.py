@@ -6,24 +6,36 @@ Railway'de bu degiskenleri "Variables" sekmesinden ayarla.
 """
 import os
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 def _bool(name: str, default: bool) -> bool:
     v = os.environ.get(name)
     if v is None:
         return default
     return v.strip().lower() in ("1", "true", "yes", "on")
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 def _float(name: str, default: float) -> float:
     v = os.environ.get(name)
     return float(v) if v else default
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 def _int(name: str, default: int) -> int:
     v = os.environ.get(name)
     return int(v) if v else default
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4be91a9 (ilk sürüm)
 # ============================== GUVENLIK ==================================
 # DRY_RUN=true iken hicbir gercek emir MetaApi'ye gonderilmez, sadece loglanir.
 # Once DRY_RUN=true ile deploy et, webhook loglarini izle, SONRA false yap.
